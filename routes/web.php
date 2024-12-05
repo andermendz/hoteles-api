@@ -10,10 +10,3 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
-
-
-Route::get('/hotels', [HotelController::class, 'index']);
-Route::post('/hotels', [HotelController::class, 'store']);
-Route::get('/room-types', [RoomTypeController::class, 'index']);
-Route::get('/accommodations', [AccommodationController::class, 'index']);
