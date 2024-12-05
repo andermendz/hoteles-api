@@ -1,66 +1,43 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Hotel;
-use App\Http\Requests\StoreHotelRequest;
-use App\Http\Requests\UpdateHotelRequest;
+use App\Models\HotelRoom;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class HotelController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $hotels = Hotel::with('hotelRooms.roomType', 'hotelRooms.accommodation')->get();
+        return response()->json($hotels);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request): JsonResponse
     {
-        //
-    }
+        $validated = $request->validate([
+            'name' => 'required|unique:hotels',
+            'address' => 'required',
+            'city' => 'required',
+            'nit' => 'required|unique:hotels',
+            'total_rooms' => 'required|integer|min:1',
+            'rooms' => 'required|array'
+        ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreHotelRequest $request)
-    {
-        //
-    }
+        $hotel = Hotel::create($validated);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Hotel $hotel)
-    {
-        //
-    }
+        foreach ($request->rooms as $room) {
+            HotelRoom::create([
+                'hotel_id' => $hotel->id,
+                'room_type_id' => $room['room_type_id'],
+                'accommodation_id' => $room['accommodation_id'],
+                'quantity' => $room['quantity']
+            ]);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Hotel $hotel)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateHotelRequest $request, Hotel $hotel)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Hotel $hotel)
-    {
-        //
+        return response()->json($hotel, 201);
     }
 }
