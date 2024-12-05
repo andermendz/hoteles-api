@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             'CUÁDRUPLE' => Accommodation::create(['name' => 'CUÁDRUPLE'])
         ];
 
-        // Crear 5 hoteles con sus habitaciones
+        // Crear X hoteles con sus habitaciones
         Hotel::factory(5)->create()->each(function ($hotel) use ($roomTypes, $accommodations) {
             // Agregar habitaciones respetando las reglas de negocio
             HotelRoom::create([
