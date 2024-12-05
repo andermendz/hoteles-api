@@ -4,20 +4,12 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Accommodation>
- */
 class AccommodationFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    public function definition()
     {
         return [
-            //
+            'name' => $this->faker->randomElement(['SENCILLA', 'DOBLE', 'TRIPLE', 'CUÁDRUPLE'])
         ];
     }
 }

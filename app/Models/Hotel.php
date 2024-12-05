@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Hotel extends Model
 {
+
+    use HasFactory;
+    
     protected $fillable = ['name', 'address', 'city', 'nit', 'total_rooms'];
 
     public function hotelRooms()
