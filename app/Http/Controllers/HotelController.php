@@ -22,7 +22,7 @@ class HotelController extends Controller
         try {
             DB::beginTransaction();
 
-            // Validar que la suma total de habitaciones coincida
+            // validar que la suma total de habitaciones coincida
             $totalRoomsRequested = collect($request->rooms)->sum('quantity');
             if ($totalRoomsRequested != $request->total_rooms) {
                 return response()->json([
@@ -30,10 +30,10 @@ class HotelController extends Controller
                 ], 422);
             }
 
-            // Crear el hotel
+            // crear el hotel
             $hotel = Hotel::create($request->validated());
 
-            // Verificar combinaciones únicas de tipo-acomodación
+            // verificar combinaciones únicas de tipo-acomodación
             $combinations = collect($request->rooms)
                 ->map(fn($room) => "{$room['room_type_id']}-{$room['accommodation_id']}")
                 ->duplicates();
@@ -44,7 +44,7 @@ class HotelController extends Controller
                 ], 422);
             }
 
-            // Crear las habitaciones
+            // crear las habitaciones
             foreach ($request->rooms as $room) {
                 HotelRoom::create([
                     'hotel_id' => $hotel->id,

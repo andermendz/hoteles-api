@@ -12,14 +12,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // Crear tipos de habitación fijos
+        // crear tipos de habitación fijos
         $roomTypes = [
             'ESTANDAR' => RoomType::create(['name' => 'ESTANDAR']),
             'JUNIOR' => RoomType::create(['name' => 'JUNIOR']),
             'SUITE' => RoomType::create(['name' => 'SUITE'])
         ];
 
-        // Crear acomodaciones fijas
+        // crear acomodaciones fijas
         $accommodations = [
             'SENCILLA' => Accommodation::create(['name' => 'SENCILLA']),
             'DOBLE' => Accommodation::create(['name' => 'DOBLE']),
@@ -27,29 +27,36 @@ class DatabaseSeeder extends Seeder
             'CUÁDRUPLE' => Accommodation::create(['name' => 'CUÁDRUPLE'])
         ];
 
-        // Crear X hoteles con sus habitaciones
+        // crear hoteles con habitaciones controladas
         Hotel::factory(5)->create()->each(function ($hotel) use ($roomTypes, $accommodations) {
-            // Agregar habitaciones respetando las reglas de negocio
-            HotelRoom::create([
-                'hotel_id' => $hotel->id,
-                'room_type_id' => $roomTypes['ESTANDAR']->id,
-                'accommodation_id' => $accommodations['SENCILLA']->id,
-                'quantity' => rand(10, 30)
-            ]);
+            $remainingRooms = $hotel->total_rooms;
+            
+            // distribuir las habitaciones proporcionalmente
+            $distributions = [
+                ['type' => 'ESTANDAR', 'acc' => 'SENCILLA', 'percentage' => 0.5],
+                ['type' => 'JUNIOR', 'acc' => 'TRIPLE', 'percentage' => 0.3],
+                ['type' => 'SUITE', 'acc' => 'DOBLE', 'percentage' => 0.2],
+            ];
 
-            HotelRoom::create([
-                'hotel_id' => $hotel->id,
-                'room_type_id' => $roomTypes['JUNIOR']->id,
-                'accommodation_id' => $accommodations['TRIPLE']->id,
-                'quantity' => rand(5, 15)
-            ]);
+            foreach ($distributions as $dist) {
+                $quantity = (int)($hotel->total_rooms * $dist['percentage']);
+                if ($quantity > 0) {
+                    HotelRoom::create([
+                        'hotel_id' => $hotel->id,
+                        'room_type_id' => $roomTypes[$dist['type']]->id,
+                        'accommodation_id' => $accommodations[$dist['acc']]->id,
+                        'quantity' => $quantity
+                    ]);
+                    $remainingRooms -= $quantity;
+                }
+            }
 
-            HotelRoom::create([
-                'hotel_id' => $hotel->id,
-                'room_type_id' => $roomTypes['SUITE']->id,
-                'accommodation_id' => $accommodations['DOBLE']->id,
-                'quantity' => rand(3, 10)
-            ]);
+            // si quedan habitaciones, añadirlas a la primera configuración
+            if ($remainingRooms > 0) {
+                HotelRoom::where('hotel_id', $hotel->id)
+                    ->first()
+                    ->increment('quantity', $remainingRooms);
+            }
         });
     }
 }

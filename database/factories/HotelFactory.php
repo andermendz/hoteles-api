@@ -13,7 +13,8 @@ class HotelFactory extends Factory
             'address' => $this->faker->streetAddress(),
             'city' => $this->faker->city(),
             'nit' => $this->faker->unique()->numerify('#########-#'),
-            'total_rooms' => $this->faker->numberBetween(30, 200),
+            // declarar el rango aleatorio de numero de habitaciones a preferencia
+            'total_rooms' => $this->faker->numberBetween(20, 100),
         ];
     }
 }
