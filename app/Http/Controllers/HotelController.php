@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Hotel;
 use App\Models\HotelRoom;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreHotelRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class HotelController extends Controller
 {
@@ -16,28 +17,49 @@ class HotelController extends Controller
         return response()->json($hotels);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreHotelRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|unique:hotels',
-            'address' => 'required',
-            'city' => 'required',
-            'nit' => 'required|unique:hotels',
-            'total_rooms' => 'required|integer|min:1',
-            'rooms' => 'required|array'
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $hotel = Hotel::create($validated);
+            // Validar que la suma total de habitaciones coincida
+            $totalRoomsRequested = collect($request->rooms)->sum('quantity');
+            if ($totalRoomsRequested != $request->total_rooms) {
+                return response()->json([
+                    'message' => 'La suma de habitaciones no coincide con el total especificado'
+                ], 422);
+            }
 
-        foreach ($request->rooms as $room) {
-            HotelRoom::create([
-                'hotel_id' => $hotel->id,
-                'room_type_id' => $room['room_type_id'],
-                'accommodation_id' => $room['accommodation_id'],
-                'quantity' => $room['quantity']
-            ]);
+            // Crear el hotel
+            $hotel = Hotel::create($request->validated());
+
+            // Verificar combinaciones únicas de tipo-acomodación
+            $combinations = collect($request->rooms)
+                ->map(fn($room) => "{$room['room_type_id']}-{$room['accommodation_id']}")
+                ->duplicates();
+
+            if ($combinations->isNotEmpty()) {
+                return response()->json([
+                    'message' => 'No se permiten combinaciones duplicadas de tipo y acomodación'
+                ], 422);
+            }
+
+            // Crear las habitaciones
+            foreach ($request->rooms as $room) {
+                HotelRoom::create([
+                    'hotel_id' => $hotel->id,
+                    'room_type_id' => $room['room_type_id'],
+                    'accommodation_id' => $room['accommodation_id'],
+                    'quantity' => $room['quantity']
+                ]);
+            }
+
+            DB::commit();
+            return response()->json($hotel->load('hotelRooms.roomType', 'hotelRooms.accommodation'), 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error al crear el hotel'], 500);
         }
-
-        return response()->json($hotel, 201);
     }
 }
