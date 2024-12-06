@@ -9,7 +9,7 @@ class HotelFactory extends Factory
     public function definition()
     {
         return [
-            'name' => 'Decameron ' . $this->faker->unique()->city(),
+            'name' =>  $this->faker->unique()->city() .' '. $this->faker->city(),
             'address' => $this->faker->streetAddress(),
             'city' => $this->faker->city(),
             'nit' => $this->faker->unique()->numerify('#########-#'),
