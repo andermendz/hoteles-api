@@ -18,7 +18,11 @@ class StoreHotelRequest extends FormRequest
             'name' => 'required|unique:hotels',
             'address' => 'required',
             'city' => 'required',
-            'nit' => 'required|unique:hotels',
+            'nit' => [
+                'required',
+                'unique:hotels',
+                'regex:/^\d{9}-\d$/' // Formato: #########-#
+            ],
             'total_rooms' => 'required|integer|min:1',
             'rooms' => 'required|array',
             'rooms.*.room_type_id' => 'required|exists:room_types,id',
@@ -29,7 +33,7 @@ class StoreHotelRequest extends FormRequest
                     $index = explode('.', $attribute)[1];
                     $roomTypeId = $this->input("rooms.{$index}.room_type_id");
                     
-                    // Validaciones según tipo de habitación
+                    // Validaciones específicas según tipo de habitación
                     if ($roomTypeId == 1) { // ESTANDAR
                         if (!in_array($value, [1, 2])) { // SENCILLA o DOBLE
                             $fail('La habitación Estándar solo permite acomodación Sencilla o Doble.');
@@ -46,6 +50,14 @@ class StoreHotelRequest extends FormRequest
                 }
             ],
             'rooms.*.quantity' => 'required|integer|min:1'
+        ];
+            
+    }
+    
+    public function messages(): array
+    {
+        return [
+            'nit.regex' => 'El NIT debe tener el formato: #########-# (9 números, guión, 1 número)'
         ];
     }
 }
