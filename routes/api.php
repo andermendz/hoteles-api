@@ -11,3 +11,4 @@ use App\Http\Controllers\AccommodationController;
     Route::get('/room-types', [RoomTypeController::class, 'index']);
     Route::get('/accommodations', [AccommodationController::class, 'index']);
 
+    Route::delete('/hotels/{hotel}', [HotelController::class, 'destroy']);

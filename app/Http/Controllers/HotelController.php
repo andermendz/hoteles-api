@@ -62,4 +62,23 @@ class HotelController extends Controller
             return response()->json(['message' => 'Error al crear el hotel'], 500);
         }
     }
+
+
+    public function destroy(Hotel $hotel): JsonResponse
+    {
+        try {
+            
+            $hotel->delete();
+            
+            return response()->json([
+                'message' => 'Hotel eliminado exitosamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el hotel'
+            ], 500);
+        }
+    }
+    
+
 }
